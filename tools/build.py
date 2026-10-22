@@ -113,6 +113,18 @@ def build_archive(pack_dir: Path, manifest: dict) -> tuple[Path, bytes]:
                 rel = path.relative_to(staging).as_posix()
                 sums.append(f"{digest(path.read_bytes())}  {rel}")
         (staging / "SHA256SUMS").write_text("\n".join(sums) + "\n")
+        # Modes are part of the tar header, so an archive built under umask 002 and one built under 022 used
+        # to differ in every entry even though the pack was the same. Normalise them: directories 0755,
+        # files 0644, and 0755 where the source is executable, so a script a skill ships stays runnable.
+        for path in sorted(staging.rglob("*")):
+            if path.is_dir():
+                path.chmod(0o755)
+            elif path.stat().st_mode & 0o111:
+                path.chmod(0o755)
+            else:
+                path.chmod(0o644)
+        (staging / "pack.json").chmod(0o644)
+        (staging / "SHA256SUMS").chmod(0o644)
         DIST.mkdir(exist_ok=True)
         out = DIST / f"{manifest['id']}-{manifest['version']}.hadepack"
         # Byte-for-byte the archive `hades pack export` writes: sorted entries, epoch mtime, owner 0, and
