@@ -82,6 +82,17 @@ the runtime applies, so a pack that builds is a pack `hades pack inspect` accept
 A pack may not declare `roles`, `floor`, `cage` or `policy`. Those are the runtime's, and a download that
 could set them would be a download that could disable its own limits.
 
+## Sending one pack to a friend
+
+The archive is the unit. Send the `.hadepack` file and the sha256 beside it; the other side runs:
+
+```
+hades pack add ./plan-a-change-1.0.0.hadepack --digest <sha256> --yes
+```
+
+Without `--digest` it prints the file's own digest, so the check can be done by eye. No shelf, no clone, no
+build.
+
 ## Installing
 
 Until `hades pack add` ships, the path is three commands and one decision file:
