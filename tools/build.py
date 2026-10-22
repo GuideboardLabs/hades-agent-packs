@@ -150,7 +150,13 @@ def build_archive(pack_dir: Path, manifest: dict) -> tuple[Path, bytes]:
         shutil.rmtree(staging, ignore_errors=True)
 
 
-def collect() -> tuple[list[dict], list[str]]:
+def collect(build: bool = True) -> tuple[list[dict], list[str]]:
+    """Every pack as a menu row.
+
+    `build=False` reads the archives already in dist/ instead of rebuilding them. That is what `--check`
+    uses: an index is stale when it disagrees with the files that are committed, not when a runner's gzip
+    happens to compress differently from the machine that published them.
+    """
     rows, problems = [], []
     for pack_dir in sorted(p for p in PACKS.iterdir() if p.is_dir()):
         manifest_path = pack_dir / "pack.json"
@@ -166,7 +172,14 @@ def collect() -> tuple[list[dict], list[str]]:
         if found:
             problems.extend(f"{pack_dir.name}: {p}" for p in found)
             continue
-        archive, data = build_archive(pack_dir, manifest)
+        if build:
+            archive, data = build_archive(pack_dir, manifest)
+        else:
+            archive = DIST / f"{manifest['id']}-{manifest['version']}.hadepack"
+            if not archive.is_file():
+                problems.append(f"{pack_dir.name}: {archive.name} is not in dist/; run tools/build.py")
+                continue
+            data = archive.read_bytes()
         items = [
             {"kind": KINDS[key], "name": entry.get("name") or entry.get("profile") or entry.get("id")}
             for key in KINDS
@@ -258,7 +271,7 @@ def main() -> int:
     )
     args = parser.parse_args()
 
-    rows, problems = collect()
+    rows, problems = collect(build=not args.check)
     if problems:
         for problem in problems:
             print(f"error: {problem}", file=sys.stderr)

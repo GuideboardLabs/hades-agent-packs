@@ -9,8 +9,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Validate packs and the generated menu
+      # No rebuild here on purpose: the check is that the committed menu agrees with the committed archives.
+      # Rebuilding on a different gzip would fail for a reason that says nothing about the packs.
+      - name: Validate the packs and the committed menu
         run: |
-          python3 tools/build.py
           python3 tools/build.py --check
           git diff --exit-code -- MENU.md INDEX.json dist
