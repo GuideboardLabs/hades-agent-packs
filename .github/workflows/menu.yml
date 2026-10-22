@@ -9,9 +9,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      # No rebuild here on purpose: the check is that the committed menu agrees with the committed archives.
-      # Rebuilding on a different gzip would fail for a reason that says nothing about the packs.
-      - name: Validate the packs and the committed menu
+      # The rebuild is the point: a pack must be the same bytes on any machine, so a diff here means either the
+      # committed menu is stale or the archive is not reproducible. Modes are normalised for exactly this.
+      - name: Validate the packs and the generated menu
         run: |
+          python3 tools/build.py
           python3 tools/build.py --check
           git diff --exit-code -- MENU.md INDEX.json dist
