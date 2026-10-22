@@ -1,0 +1,16 @@
+name: menu
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Validate packs and the generated menu
+        run: |
+          python3 tools/build.py
+          python3 tools/build.py --check
+          git diff --exit-code -- MENU.md INDEX.json dist

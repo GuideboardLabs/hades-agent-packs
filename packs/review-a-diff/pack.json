@@ -1,0 +1,27 @@
+{
+  "format": 1,
+  "id": "review-a-diff",
+  "version": "1.0.0",
+  "title": "Review a diff",
+  "summary": "Read a change as a reviewer: what it does, what it breaks, what it leaves untested.",
+  "license": "MIT",
+  "derivatives": "allowed",
+  "keywords": ["review", "diff", "tests", "git"],
+  "requires": {
+    "hades": ">=0.1.0,<0.2",
+    "roles": [],
+    "tools": ["read_file", "shell"]
+  },
+  "provides": {
+    "skills": [
+      { "name": "review-a-diff", "path": "files/skills/review-a-diff" }
+    ],
+    "harnesses": [],
+    "cases": []
+  },
+  "capabilities": {
+    "network": false,
+    "writes": [],
+    "code": false
+  }
+}

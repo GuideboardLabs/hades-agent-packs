@@ -1,0 +1,17 @@
+{
+  "format": 1,
+  "id": "example",
+  "version": "1.0.0",
+  "title": "My pack",
+  "summary": "One sentence on what this does and when to reach for it.",
+  "license": "MIT",
+  "derivatives": "allowed",
+  "keywords": ["three", "to", "six", "words"],
+  "requires": { "hades": ">=0.1.0,<0.2", "roles": [], "tools": [] },
+  "provides": {
+    "skills": [{ "name": "example", "path": "files/skills/example" }],
+    "harnesses": [],
+    "cases": []
+  },
+  "capabilities": { "network": false, "writes": [], "code": false }
+}

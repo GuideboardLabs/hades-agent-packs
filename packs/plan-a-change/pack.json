@@ -1,0 +1,27 @@
+{
+  "format": 1,
+  "id": "plan-a-change",
+  "version": "1.0.0",
+  "title": "Plan a change",
+  "summary": "Break a change into steps a check can prove, before any file is touched.",
+  "license": "MIT",
+  "derivatives": "allowed",
+  "keywords": ["planning", "design", "steps", "check"],
+  "requires": {
+    "hades": ">=0.1.0,<0.2",
+    "roles": [],
+    "tools": ["read_file"]
+  },
+  "provides": {
+    "skills": [
+      { "name": "plan-a-change", "path": "files/skills/plan-a-change" }
+    ],
+    "harnesses": [],
+    "cases": []
+  },
+  "capabilities": {
+    "network": false,
+    "writes": [],
+    "code": false
+  }
+}

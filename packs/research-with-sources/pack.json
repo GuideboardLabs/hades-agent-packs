@@ -1,0 +1,27 @@
+{
+  "format": 1,
+  "id": "research-with-sources",
+  "version": "1.0.0",
+  "title": "Research with sources",
+  "summary": "Answer a question from primary sources, with the quote and the date attached to every claim.",
+  "license": "MIT",
+  "derivatives": "allowed",
+  "keywords": ["research", "sources", "citations", "verification"],
+  "requires": {
+    "hades": ">=0.1.0,<0.2",
+    "roles": [],
+    "tools": ["fetch", "web_search", "read_file"]
+  },
+  "provides": {
+    "skills": [
+      { "name": "research-with-sources", "path": "files/skills/research-with-sources" }
+    ],
+    "harnesses": [],
+    "cases": []
+  },
+  "capabilities": {
+    "network": true,
+    "writes": [],
+    "code": false
+  }
+}
