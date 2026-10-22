@@ -8,9 +8,9 @@ case, with a manifest that says what it needs and what it is allowed to touch.
 
 | pack | kind | version | what it does | keywords | size | sha256 |
 |---|---|---|---|---|---|---|
-| `plan-a-change` | skill | 1.0.0 | Break a change into steps a check can prove, before any file is touched. | planning, design, steps, check | 1.6 kB | `95754aa1b909` |
-| `research-with-sources` | skill | 1.0.0 | Answer a question from primary sources, with the quote and the date attached to every claim. | research, sources, citations, verification | 1.7 kB | `589e593acd88` |
-| `review-a-diff` | skill | 1.0.0 | Read a change as a reviewer: what it does, what it breaks, what it leaves untested. | review, diff, tests, git | 1.7 kB | `8e230b48bb2b` |
+| `plan-a-change` | skill | 1.0.0 | Break a change into steps a check can prove, before any file is touched. | planning, design, steps, check | 1.6 kB | `91a4b3acd50e` |
+| `research-with-sources` | skill | 1.0.0 | Answer a question from primary sources, with the quote and the date attached to every claim. | research, sources, citations, verification | 1.6 kB | `8fc8d5b53b65` |
+| `review-a-diff` | skill | 1.0.0 | Read a change as a reviewer: what it does, what it breaks, what it leaves untested. | review, diff, tests, git | 1.7 kB | `da4e440d41f5` |
 
 ## Using a pack
 

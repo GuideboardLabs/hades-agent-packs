@@ -115,12 +115,36 @@ def build_archive(pack_dir: Path, manifest: dict) -> tuple[Path, bytes]:
         (staging / "SHA256SUMS").write_text("\n".join(sums) + "\n")
         DIST.mkdir(exist_ok=True)
         out = DIST / f"{manifest['id']}-{manifest['version']}.hadepack"
-        # `-C staging .` so every entry is relative, as `hades pack export` writes them.
-        subprocess.run(
-            ["tar", "-czf", str(out), "-C", str(staging), "."],
-            check=True,
-            env={**os.environ, "COPYFILE_DISABLE": "1"},
-        )
+        # Byte-for-byte the archive `hades pack export` writes: sorted entries, epoch mtime, owner 0, and
+        # `gzip -n` so the compression header carries no timestamp. Without that, the same pack built twice
+        # gets two digests and every menu row goes stale on the next build.
+        with open(out, "wb") as sink:
+            tar = subprocess.Popen(
+                [
+                    "tar",
+                    "--sort=name",
+                    "--mtime=@0",
+                    "--owner=0",
+                    "--group=0",
+                    "--numeric-owner",
+                    "-C",
+                    str(staging),
+                    "-cf",
+                    "-",
+                    ".",
+                ],
+                stdout=subprocess.PIPE,
+                env={**os.environ, "COPYFILE_DISABLE": "1"},
+            )
+            gzip = subprocess.Popen(
+                ["gzip", "-n"], stdin=tar.stdout, stdout=sink
+            )
+            if tar.stdout is not None:
+                tar.stdout.close()
+            gzip.wait()
+            tar.wait()
+            if tar.returncode or gzip.returncode:
+                raise SystemExit(f"packaging {out.name} failed")
         return out, out.read_bytes()
     finally:
         shutil.rmtree(staging, ignore_errors=True)
