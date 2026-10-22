@@ -8,6 +8,12 @@ Every pack is data. It carries a manifest that says what it provides, what it ne
 to touch. Nothing here can declare a guardrail, a role or a cage rule; those belong to the runtime, not to a
 download.
 
+This repository and the packs in it are MIT. A pack installed into Hades is not covered by Hades' licence and
+Hades' licence does not reach it: a pack's `license` field is the whole statement. A commercial pack says so,
+sets `derivatives: forbidden`, and publishes its archive somewhere that is not this public repository; the
+menu row may name an absolute `https://` archive URL, and `hades pack add` checks the same digest either
+way.
+
 ## The two rules
 
 1. **The menu is checked before a new skill is written.** A skill that already exists here is installed, not
