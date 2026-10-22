@@ -228,6 +228,10 @@ def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--check", action="store_true", help="fail if the committed index is stale")
     parser.add_argument("--inspect", metavar="BIN", help="run `<BIN> pack inspect` on each archive")
+    parser.add_argument(
+        "--ship", metavar="REPO",
+        help="also copy INDEX.json and MENU.md into a Hades checkout's docs/packs/ (release step)",
+    )
     args = parser.parse_args()
 
     rows, problems = collect()
@@ -252,6 +256,13 @@ def main() -> int:
     INDEX.write_text(index_text(rows))
     MENU.write_text(menu_text(rows))
     print(f"wrote dist/, INDEX.json and MENU.md for {len(rows)} packs")
+
+    if args.ship:
+        target = Path(args.ship) / "docs" / "packs"
+        target.mkdir(parents=True, exist_ok=True)
+        shutil.copy2(INDEX, target / "INDEX.json")
+        shutil.copy2(MENU, target / "MENU.md")
+        print(f"shipped the menu to {target}")
 
     if args.inspect:
         for row in rows:
