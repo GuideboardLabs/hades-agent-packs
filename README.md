@@ -27,7 +27,7 @@ way.
 ```
 MENU.md                    generated, for people and agents
 INDEX.json                 generated, for programs
-dist/<id>-<version>.pack   generated, the archive that is fetched
+dist/<id>-<version>.hadepack   generated, the archive that is fetched
 packs/<id>/pack.json       the manifest, written by hand
 packs/<id>/files/...       the payload, laid out exactly as the manifest names it
 tools/build.py             validates, archives, regenerates the menu
@@ -87,11 +87,11 @@ could set them would be a download that could disable its own limits.
 Until `hades pack add` ships, the path is three commands and one decision file:
 
 ```bash
-curl -LO <this repo>/dist/review-a-diff-1.0.0.pack
-sha256sum review-a-diff-1.0.0.pack          # compare with the row in MENU.md
-hades pack inspect review-a-diff-1.0.0.pack
-hades pack plan review-a-diff-1.0.0.pack --state ~/.hades
-hades pack apply review-a-diff-1.0.0.pack --plan decisions.json --state ~/.hades --activate
+curl -LO <this repo>/dist/review-a-diff-1.0.0.hadepack
+sha256sum review-a-diff-1.0.0.hadepack          # compare with the row in MENU.md
+hades pack inspect review-a-diff-1.0.0.hadepack
+hades pack plan review-a-diff-1.0.0.hadepack --state ~/.hades
+hades pack apply review-a-diff-1.0.0.hadepack --plan decisions.json --state ~/.hades --activate
 ```
 
 The sha256 check is the step that matters: the digest in `MENU.md` is what the archive must hash to before

@@ -114,7 +114,7 @@ def build_archive(pack_dir: Path, manifest: dict) -> tuple[Path, bytes]:
                 sums.append(f"{digest(path.read_bytes())}  {rel}")
         (staging / "SHA256SUMS").write_text("\n".join(sums) + "\n")
         DIST.mkdir(exist_ok=True)
-        out = DIST / f"{manifest['id']}-{manifest['version']}.pack"
+        out = DIST / f"{manifest['id']}-{manifest['version']}.hadepack"
         # `-C staging .` so every entry is relative, as `hades pack export` writes them.
         subprocess.run(
             ["tar", "-czf", str(out), "-C", str(staging), "."],
