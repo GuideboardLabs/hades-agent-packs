@@ -36,7 +36,7 @@ KEYS = {
     "format", "id", "version", "title", "summary", "license", "derivatives",
     "requires", "provides", "capabilities", "keywords",
 }
-KINDS = {"skills": "skill", "harnesses": "tool", "cases": "test"}
+KINDS = {"skills": "skill", "harnesses": "tool", "cases": "test", "connectors": "connector"}
 FORBIDDEN = {"roles", "floor", "cage", "policy"}
 
 
@@ -72,8 +72,11 @@ def check_manifest(pack_dir: Path, manifest: dict) -> list[str]:
     if not isinstance(requires.get("hades"), str) or not requires["hades"].strip():
         problems.append("`requires.hades` must be a range, for example >=0.1.0,<0.2")
     provides = manifest.get("provides") or {}
-    if set(provides) != set(KINDS):
-        problems.append("`provides` must have exactly skills, harnesses, cases")
+    unknown = set(provides) - set(KINDS)
+    if unknown:
+        problems.append(f"`provides` has unknown keys: {sorted(unknown)}")
+    if {"skills", "harnesses", "cases"} - set(provides):
+        problems.append("`provides` must say skills, harnesses and cases, even when empty")
     items = []
     for key, kind in KINDS.items():
         for entry in provides.get(key, []):
@@ -85,6 +88,17 @@ def check_manifest(pack_dir: Path, manifest: dict) -> list[str]:
             folder = pack_dir / where
             if not folder.is_dir():
                 problems.append(f"provides.{key} `{name}` has no folder at {where}")
+            elif key == "connectors":
+                archives = sorted(folder.glob("*.tar.gz"))
+                if len(archives) != 1:
+                    problems.append(
+                        f"provides.connectors `{name}` must hold exactly one .tar.gz, found {len(archives)}"
+                    )
+                platform = entry.get("platform")
+                if not isinstance(platform, str) or not platform.strip():
+                    problems.append(f"provides.connectors `{name}` needs a platform triple")
+                items.append({"kind": kind, "name": name, "platform": entry.get("platform")})
+                continue
             elif not any(folder.rglob("*")):
                 problems.append(f"provides.{key} `{name}` is empty")
             items.append({"kind": kind, "name": name})
@@ -93,7 +107,11 @@ def check_manifest(pack_dir: Path, manifest: dict) -> list[str]:
     capabilities = manifest.get("capabilities") or {}
     if set(capabilities) != {"network", "writes", "code"}:
         problems.append("`capabilities` must have exactly network, writes, code")
-    if capabilities.get("code") is not False:
+    connector = bool(provides.get("connectors"))
+    if connector:
+        if capabilities.get("code") is not True:
+            problems.append("a connector ships a binary, so `capabilities.code` must be true")
+    elif capabilities.get("code") is not False:
         problems.append("`capabilities.code` must be false")
     writes = capabilities.get("writes", [])
     if not isinstance(writes, list) or any(w not in ("vault", "state") for w in writes):
@@ -162,6 +180,18 @@ def build_archive(pack_dir: Path, manifest: dict) -> tuple[Path, bytes]:
         shutil.rmtree(staging, ignore_errors=True)
 
 
+def connector_archive(pack_dir: Path, manifest: dict) -> tuple[Path, bytes]:
+    """A connector arrives compiled. Rebuilding it here would make the digest name a different artifact, so
+    the bytes in `files/connectors/<name>/` are copied unchanged and hashed as they stand."""
+    entry = manifest["provides"]["connectors"][0]
+    folder = pack_dir / "files" / "connectors" / entry["name"]
+    source = sorted(folder.glob("*.tar.gz"))[0]
+    DIST.mkdir(exist_ok=True)
+    out = DIST / source.name
+    shutil.copyfile(source, out)
+    return out, out.read_bytes()
+
+
 def collect(build: bool = True) -> tuple[list[dict], list[str]]:
     """Every pack as a menu row.
 
@@ -184,8 +214,21 @@ def collect(build: bool = True) -> tuple[list[dict], list[str]]:
         if found:
             problems.extend(f"{pack_dir.name}: {p}" for p in found)
             continue
+        connector = bool(manifest["provides"].get("connectors"))
         if build:
-            archive, data = build_archive(pack_dir, manifest)
+            archive, data = (
+                connector_archive(pack_dir, manifest)
+                if connector
+                else build_archive(pack_dir, manifest)
+            )
+        elif connector:
+            folder = pack_dir / "files" / "connectors" / manifest["provides"]["connectors"][0]["name"]
+            found = sorted(folder.glob("*.tar.gz"))
+            archive = DIST / found[0].name if found else DIST / "missing.tar.gz"
+            if not archive.is_file():
+                problems.append(f"{pack_dir.name}: {archive.name} is not in dist/; run tools/build.py")
+                continue
+            data = archive.read_bytes()
         else:
             archive = DIST / f"{manifest['id']}-{manifest['version']}.hadepack"
             if not archive.is_file():
@@ -195,7 +238,7 @@ def collect(build: bool = True) -> tuple[list[dict], list[str]]:
         items = [
             {"kind": KINDS[key], "name": entry.get("name") or entry.get("profile") or entry.get("id")}
             for key in KINDS
-            for entry in manifest["provides"][key]
+            for entry in manifest["provides"].get(key, [])
         ]
         rows.append({
             "id": manifest["id"],
@@ -212,6 +255,11 @@ def collect(build: bool = True) -> tuple[list[dict], list[str]]:
             "bytes": len(data),
             "sha256": digest(data),
             "archive": f"dist/{archive.name}",
+            **(
+                {"platform": manifest["provides"]["connectors"][0]["platform"]}
+                if connector
+                else {}
+            ),
         })
     return rows, problems
 
@@ -231,8 +279,9 @@ def menu_text(rows: list[dict]) -> str:
         "The shelf Hades checks before it writes a skill of its own. Generated by `tools/build.py` from",
         "`packs/*/pack.json`; do not edit this file.",
         "",
-        "Every row is a pack this repository publishes. A pack is data: a skill, a tool profile, or a test",
-        "case, with a manifest that says what it needs and what it is allowed to touch.",
+        "Every row is a pack this repository publishes. A data pack is a skill, a tool profile or a test case.",
+        "A connector pack is a compiled binary for one platform triple, which is why its row names the triple",
+        "and why installing one asks for `--yes` and is verified file by file before it runs.",
         "",
         "| pack | kind | version | what it does | keywords | size | sha256 |",
         "|---|---|---|---|---|---|---|",

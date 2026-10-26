@@ -1,0 +1,32 @@
+{
+  "format": 1,
+  "id": "discord",
+  "version": "0.1.0",
+  "title": "Discord connector",
+  "summary": "Run Hades inside a Discord server: mention it in a channel and it answers there, with a chat channel it cannot write from and a work channel that runs goals.",
+  "license": "MIT",
+  "derivatives": "allowed",
+  "keywords": ["discord", "connector", "chat", "gateway", "server"],
+  "requires": {
+    "hades": ">=0.1.23,<0.2",
+    "roles": [],
+    "tools": []
+  },
+  "provides": {
+    "skills": [],
+    "harnesses": [],
+    "cases": [],
+    "connectors": [
+      {
+        "name": "discord",
+        "path": "files/connectors/discord",
+        "platform": "linux-x86_64"
+      }
+    ]
+  },
+  "capabilities": {
+    "network": true,
+    "writes": ["state"],
+    "code": true
+  }
+}

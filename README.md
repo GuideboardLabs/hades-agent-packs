@@ -4,9 +4,13 @@ Skills, tool profiles and test cases for [Hades](https://github.com/GuideboardLa
 the runtime so the runtime stays small. Hades ships `MENU.md` and `INDEX.json` as a reference: it knows what
 exists, and installs only what a person asks for.
 
-Every pack is data. It carries a manifest that says what it provides, what it needs, and what it is allowed
-to touch. Nothing here can declare a guardrail, a role or a cage rule; those belong to the runtime, not to a
-download.
+Every pack carries a manifest that says what it provides, what it needs, and what it is allowed to touch.
+Nothing here can declare a guardrail, a role or a cage rule; those belong to the runtime, not to a download.
+
+A **connector pack** is the one exception to "a pack is data": it ships a compiled binary, so its manifest
+sets `capabilities.code: true`, names a `platform` triple, and installs through the connector path, which
+hashes every file in the archive and refuses an entrypoint outside `bin/` before anything runs. A connector
+row is why `hades pack add` takes `--yes` for it and not for a skill.
 
 This repository and the packs in it are MIT. A pack installed into Hades is not covered by Hades' licence and
 Hades' licence does not reach it: a pack's `license` field is the whole statement. A commercial pack says so,
@@ -27,7 +31,8 @@ way.
 ```
 MENU.md                    generated, for people and agents
 INDEX.json                 generated, for programs
-dist/<id>-<version>.hadepack   generated, the archive that is fetched
+dist/<id>-<version>.hadepack   generated, the archive a data pack is fetched as
+packs/<id>/files/connectors/<id>/*.tar.gz   a connector's compiled archive, copied unchanged into dist/
 packs/<id>/pack.json       the manifest, written by hand
 packs/<id>/files/...       the payload, laid out exactly as the manifest names it
 tools/build.py             validates, archives, regenerates the menu
