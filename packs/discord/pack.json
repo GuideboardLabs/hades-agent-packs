@@ -1,7 +1,7 @@
 {
   "format": 1,
   "id": "discord",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "title": "Discord connector",
   "summary": "Run Hades inside a Discord server: mention it or reply to one of its messages and it answers there. Chat channels cannot write; a work channel runs goals. It inherits the gateway's model and provider, ships its own opening prompt and working animation, and can react instead of replying when a reply would add nothing.",
   "license": "MIT",
