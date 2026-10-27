@@ -3,10 +3,18 @@
   "id": "discord",
   "version": "0.1.0",
   "title": "Discord connector",
-  "summary": "Run Hades inside a Discord server: mention it in a channel and it answers there, with a chat channel it cannot write from and a work channel that runs goals.",
+  "summary": "Run Hades inside a Discord server: mention it or reply to one of its messages and it answers there. Chat channels cannot write; a work channel runs goals. It inherits the gateway's model and provider, ships its own opening prompt and working animation, and can react instead of replying when a reply would add nothing.",
   "license": "MIT",
   "derivatives": "allowed",
-  "keywords": ["discord", "connector", "chat", "gateway", "server"],
+  "keywords": [
+    "discord",
+    "connector",
+    "chat",
+    "gateway",
+    "server",
+    "replies",
+    "reactions"
+  ],
   "requires": {
     "hades": ">=0.1.23,<0.2",
     "roles": [],
@@ -26,7 +34,9 @@
   },
   "capabilities": {
     "network": true,
-    "writes": ["state"],
+    "writes": [
+      "state"
+    ],
     "code": true
   }
 }
