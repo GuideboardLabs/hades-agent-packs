@@ -16,7 +16,7 @@
     "reactions"
   ],
   "requires": {
-    "hades": ">=0.1.23,<0.2",
+    "hades": ">=0.1.23,<0.3",
     "roles": [],
     "tools": []
   },
