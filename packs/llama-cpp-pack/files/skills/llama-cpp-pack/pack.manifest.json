@@ -1,6 +1,6 @@
 {
   "name": "llama-cpp-pack",
-  "version": "2.1.0",
+  "version": "2.2.0",
   "description": "Serving GGUF models on consumer gaming GPUs: build, fit, tune, pre-test, serve.",
   "written_on": {
     "gpu": "AMD RX 5700 XT 8 GiB RDNA1 (gfx1010)",

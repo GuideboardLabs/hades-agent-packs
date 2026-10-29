@@ -2,6 +2,29 @@
   "_note": "Sizes are GiB measured from the real file on this machine (2026-10-29). Repos are verified to exist on Hugging Face. A size is a fact; an expected speed is not, so speed only appears where it was measured on this hardware.",
   "models": [
     {
+      "key": "qwen2.5-0.5b-instruct-q4_k_m",
+      "name": "Qwen2.5 0.5B instruct",
+      "repo": "Qwen/Qwen2.5-0.5B-Instruct-GGUF",
+      "file": "qwen2.5-0.5b-instruct-q4_k_m.gguf",
+      "size_gib": 0.46,
+      "params_b": 0.63,
+      "active_b": 0.63,
+      "moe": false,
+      "arch": "qwen2",
+      "context": 32768,
+      "vision": false,
+      "notes": "The cheapest real model: fast enough that latency stops being the constraint, and it fits beside anything else on the card.",
+      "measured": [
+        {
+          "hardware": "RX 5700 XT 8GB / Ryzen 5 1600",
+          "measured_on": "2026-10-29",
+          "flags": "-ngl 99 -p 2048 -n 128 -r 2 (llama-bench, Vulkan)",
+          "decode_tps": 333.4,
+          "prefill_tps": 6039.9
+        }
+      ]
+    },
+    {
       "key": "lfm3-1.7b-q4_k_m",
       "name": "LFM3 1.7B",
       "repo": "LiquidAI/LFM3-1.7B-GGUF",
@@ -13,7 +36,7 @@
       "arch": "lfm3",
       "context": 262144,
       "vision": false,
-      "notes": "Tiny and fast enough to run three of them at once. Good first model on any card, including an iGPU.",
+      "notes": "Tiny and fast enough to run three of them at once. Good first model on any card, including an iGPU. No measurement yet: the Vulkan build on this machine predates lfm3 support and refuses the file, so the number is missing rather than guessed.",
       "measured": []
     },
     {
@@ -29,7 +52,44 @@
       "context": 32768,
       "vision": false,
       "notes": "Used as the Malarchy installer's local model. Small enough for a 4 GB card.",
-      "measured": []
+      "measured": [
+        {
+          "hardware": "RX 5700 XT 8GB / Ryzen 5 1600",
+          "measured_on": "2026-10-29",
+          "flags": "-ngl 99 -p 2048 -n 128 -r 2 (llama-bench, Vulkan)",
+          "decode_tps": 148.7,
+          "prefill_tps": 1325.6
+        }
+      ]
+    },
+    {
+      "key": "qwen3vl-4b",
+      "name": "Qwen3-VL 4B (vision)",
+      "repo": "Qwen/Qwen3-VL-4B-Instruct-GGUF",
+      "file": "Qwen3VL-4B-Instruct-Q4_K_M.gguf",
+      "size_gib": 2.33,
+      "params_b": 4,
+      "active_b": 4,
+      "moe": false,
+      "arch": "qwen3vl",
+      "context": 32768,
+      "vision": true,
+      "mmproj": {
+        "repo": "Qwen/Qwen3-VL-4B-Instruct-GGUF",
+        "file": "mmproj-Qwen3VL-4B-Instruct-Q8_0.gguf",
+        "size_gib": 0.42
+      },
+      "notes": "The vision pair wired for Hades: runs on CPU at -ngl 0 for zero VRAM, about 15 s per 768 px image.",
+      "measured": [
+        {
+          "hardware": "RX 5700 XT 8GB / Ryzen 5 1600 (CPU only)",
+          "quant": "Q4_K_M",
+          "flags": "-ngl 0 --mmproj",
+          "vram_gib": 0.0,
+          "decode_tps": null,
+          "seconds_per_image": 15.6
+        }
+      ]
     },
     {
       "key": "qwen3.8-9b-q4_k_m",
@@ -44,7 +104,15 @@
       "context": 131072,
       "vision": false,
       "notes": "The general-purpose 9B. Fits fully on 8 GB at Q4 with room for 16k context.",
-      "measured": []
+      "measured": [
+        {
+          "hardware": "RX 5700 XT 8GB / Ryzen 5 1600",
+          "measured_on": "2026-10-29",
+          "flags": "-ngl 99 -p 2048 -n 128 -r 2 (llama-bench, Vulkan)",
+          "decode_tps": 52.0,
+          "prefill_tps": 400.3
+        }
+      ]
     },
     {
       "key": "gemma4-12b-q4_k_xl",
@@ -62,18 +130,18 @@
       "measured": []
     },
     {
-      "key": "gemma4-26b-a4b-q4_k_m",
-      "name": "Gemma 4 26B A4B",
-      "repo": "unsloth/gemma-4-26B-A4B-it-GGUF",
-      "file": "gemma-4-26B-A4B-it-UD-Q4_K_M.gguf",
-      "size_gib": 15.78,
-      "params_b": 26,
-      "active_b": 4,
-      "moe": true,
-      "arch": "gemma",
-      "context": 131072,
+      "key": "saluki-27b-iq2",
+      "name": "Saluki 27B IQ2",
+      "repo": "",
+      "file": "Underdog-Saluki-27B-1.0-IQ2-mix.gguf",
+      "size_gib": 7.36,
+      "params_b": 27,
+      "active_b": 27,
+      "moe": false,
+      "arch": "",
+      "context": 32768,
       "vision": true,
-      "notes": "4B active, so it stays quick even when experts live in RAM. Vision needs its mmproj.",
+      "notes": "27B at 2 bits in 7.4 GB. Fits an 8 GB card whole; expect quality damage on exact tasks.",
       "measured": []
     },
     {
@@ -90,7 +158,15 @@
       "vision": false,
       "notes": "Hybrid gated-delta-net attention, so KV is cheap: 32k with q8_0 KV fits an 8 GB card.",
       "measured": [
-        {"hardware": "RX 5700 XT 8GB / Ryzen 5 1600", "quant": "Q4_K_M", "flags": "-ngl 999 -ncmoe 20 -fa on -c 32768 -ctk q8_0 -ctv q8_0", "vram_gib": 7.34, "decode_tps": 22.2, "prefill_tps": 312, "prompt_tokens": 12836}
+        {
+          "hardware": "RX 5700 XT 8GB / Ryzen 5 1600",
+          "quant": "Q4_K_M",
+          "flags": "-ngl 999 -ncmoe 20 -fa on -c 32768 -ctk q8_0 -ctv q8_0",
+          "vram_gib": 7.34,
+          "decode_tps": 22.2,
+          "prefill_tps": 312,
+          "prompt_tokens": 12836
+        }
       ]
     },
     {
@@ -98,7 +174,7 @@
       "name": "Qwen3.8 27B",
       "repo": "unsloth/Qwen3.8-27B-GGUF",
       "file": "Qwen3.8-27B-UD-IQ3_XXS.gguf",
-      "size_gib": 11.10,
+      "size_gib": 11.1,
       "params_b": 27,
       "active_b": 27,
       "moe": false,
@@ -107,8 +183,63 @@
       "vision": false,
       "notes": "Dense 27B at 3 bits: the biggest dense model that fits an 8 GB card with usable context.",
       "measured": [
-        {"hardware": "RX 5700 XT 8GB / Ryzen 5 1600", "quant": "IQ3_XXS", "flags": "-ngl 999 -c 32768 -ctk q4_0 -ctv q4_0 -fa on", "vram_gib": 7.8, "decode_tps": 24.5, "prefill_tps": null, "ctx": 32768},
-        {"hardware": "RX 5700 XT 8GB / Ryzen 5 1600", "quant": "IQ3_XXS", "flags": "-ngl 999 -c 65536 -ctk q4_0 -ctv q4_0 -fa on", "vram_gib": null, "decode_tps": 11.8, "prefill_tps": null, "ctx": 65536}
+        {
+          "hardware": "RX 5700 XT 8GB / Ryzen 5 1600",
+          "quant": "IQ3_XXS",
+          "flags": "-ngl 999 -c 32768 -ctk q4_0 -ctv q4_0 -fa on",
+          "vram_gib": 7.8,
+          "decode_tps": 24.5,
+          "prefill_tps": null,
+          "ctx": 32768
+        },
+        {
+          "hardware": "RX 5700 XT 8GB / Ryzen 5 1600",
+          "quant": "IQ3_XXS",
+          "flags": "-ngl 999 -c 65536 -ctk q4_0 -ctv q4_0 -fa on",
+          "vram_gib": null,
+          "decode_tps": 11.8,
+          "prefill_tps": null,
+          "ctx": 65536
+        }
+      ]
+    },
+    {
+      "key": "gemma4-26b-a4b-q4_k_m",
+      "name": "Gemma 4 26B A4B",
+      "repo": "unsloth/gemma-4-26B-A4B-it-GGUF",
+      "file": "gemma-4-26B-A4B-it-UD-Q4_K_M.gguf",
+      "size_gib": 15.78,
+      "params_b": 26,
+      "active_b": 4,
+      "moe": true,
+      "arch": "gemma",
+      "context": 131072,
+      "vision": true,
+      "notes": "4B active, so it stays quick even when experts live in RAM. Vision needs its mmproj.",
+      "measured": []
+    },
+    {
+      "key": "clover-35b-a3b-q4_0",
+      "name": "Clover 35B A3B (block-diffusion)",
+      "repo": "Diffuspace/Clover-35B-A3B-Preview-GGUF",
+      "file": "Clover-35B-A3B-Preview-Q4_0.gguf",
+      "size_gib": 18.24,
+      "params_b": 35,
+      "active_b": 3,
+      "moe": true,
+      "arch": "clover_moe",
+      "context": 131072,
+      "vision": false,
+      "notes": "Needs llama.cpp PR 31306. --spec-type draft-self exists for it and measured slower than plain decoding here.",
+      "measured": [
+        {
+          "hardware": "RX 5700 XT 8GB / Ryzen 5 1600",
+          "quant": "Q4_0",
+          "flags": "-ngl 999 -ncmoe 26 -fa on -c 8192 --load-mode none",
+          "vram_gib": 8.05,
+          "decode_tps": 10.29,
+          "prefill_tps": 285
+        }
       ]
     },
     {
@@ -127,6 +258,26 @@
       "measured": []
     },
     {
+      "key": "minicpm-v-4.7-35b-a3b",
+      "name": "MiniCPM-V 4.7 35B A3B (vision)",
+      "repo": "openbmb/MiniCPM-V-4_7-GGUF",
+      "file": "MiniCPM-V-4_7-35B-A3B-Q4_K_M.gguf",
+      "size_gib": 19.71,
+      "params_b": 35,
+      "active_b": 3,
+      "moe": true,
+      "arch": "minicpmv",
+      "context": 32768,
+      "vision": true,
+      "mmproj": {
+        "repo": "openbmb/MiniCPM-V-4_7-GGUF",
+        "file": "mmproj-model-f16.gguf",
+        "size_gib": 1.04
+      },
+      "notes": "A 35B vision MoE. On an 8 GB card it is a batch tool, not an interactive one.",
+      "measured": []
+    },
+    {
       "key": "qwen3.8-35b-a3b-distill-q4_k_m",
       "name": "Qwen3.8 35B A3B",
       "repo": "unsloth/Qwen3.6-35B-A3B-GGUF",
@@ -140,7 +291,14 @@
       "vision": true,
       "notes": "The class the field reports run on 12 GB cards with --n-cpu-moe and -np 1. Vision needs the mmproj of the same family.",
       "measured": [
-        {"hardware": "RX 5700 XT 8GB / Ryzen 5 1600", "quant": "Q4_K_M", "flags": "-ngl 999 -ncmoe 40", "vram_gib": null, "decode_tps": 20.5, "prefill_tps": null}
+        {
+          "hardware": "RX 5700 XT 8GB / Ryzen 5 1600",
+          "quant": "Q4_K_M",
+          "flags": "-ngl 999 -ncmoe 40",
+          "vram_gib": null,
+          "decode_tps": 20.5,
+          "prefill_tps": null
+        }
       ]
     },
     {
@@ -157,75 +315,23 @@
       "vision": false,
       "notes": "Needs its own llama.cpp fork (the flint arch is not in master). Hybrid: 14 of 49 layers carry full attention.",
       "measured": [
-        {"hardware": "RX 5700 XT 8GB / Ryzen 5 1600", "quant": "UD-Q4_K_XL", "flags": "-ncmoe 37", "vram_gib": 7.58, "decode_tps": 19.0, "prefill_tps": null},
-        {"hardware": "RX 5700 XT 8GB / Ryzen 5 1600", "quant": "UD-Q4_K_XL", "flags": "-ncmoe 39", "vram_gib": 6.69, "decode_tps": 18.6, "prefill_tps": null}
+        {
+          "hardware": "RX 5700 XT 8GB / Ryzen 5 1600",
+          "quant": "UD-Q4_K_XL",
+          "flags": "-ncmoe 37",
+          "vram_gib": 7.58,
+          "decode_tps": 19.0,
+          "prefill_tps": null
+        },
+        {
+          "hardware": "RX 5700 XT 8GB / Ryzen 5 1600",
+          "quant": "UD-Q4_K_XL",
+          "flags": "-ncmoe 39",
+          "vram_gib": 6.69,
+          "decode_tps": 18.6,
+          "prefill_tps": null
+        }
       ]
-    },
-    {
-      "key": "clover-35b-a3b-q4_0",
-      "name": "Clover 35B A3B (block-diffusion)",
-      "repo": "Diffuspace/Clover-35B-A3B-Preview-GGUF",
-      "file": "Clover-35B-A3B-Preview-Q4_0.gguf",
-      "size_gib": 18.24,
-      "params_b": 35,
-      "active_b": 3,
-      "moe": true,
-      "arch": "clover_moe",
-      "context": 131072,
-      "vision": false,
-      "notes": "Needs llama.cpp PR 31306. --spec-type draft-self exists for it and measured slower than plain decoding here.",
-      "measured": [
-        {"hardware": "RX 5700 XT 8GB / Ryzen 5 1600", "quant": "Q4_0", "flags": "-ngl 999 -ncmoe 26 -fa on -c 8192 --load-mode none", "vram_gib": 8.05, "decode_tps": 10.29, "prefill_tps": 285}
-      ]
-    },
-    {
-      "key": "saluki-27b-iq2",
-      "name": "Saluki 27B IQ2",
-      "repo": "",
-      "file": "Underdog-Saluki-27B-1.0-IQ2-mix.gguf",
-      "size_gib": 7.36,
-      "params_b": 27,
-      "active_b": 27,
-      "moe": false,
-      "arch": "",
-      "context": 32768,
-      "vision": true,
-      "notes": "27B at 2 bits in 7.4 GB. Fits an 8 GB card whole; expect quality damage on exact tasks.",
-      "measured": []
-    },
-    {
-      "key": "qwen3vl-4b",
-      "name": "Qwen3-VL 4B (vision)",
-      "repo": "Qwen/Qwen3-VL-4B-Instruct-GGUF",
-      "file": "Qwen3VL-4B-Instruct-Q4_K_M.gguf",
-      "size_gib": 2.33,
-      "params_b": 4,
-      "active_b": 4,
-      "moe": false,
-      "arch": "qwen3vl",
-      "context": 32768,
-      "vision": true,
-      "mmproj": {"repo": "Qwen/Qwen3-VL-4B-Instruct-GGUF", "file": "mmproj-Qwen3VL-4B-Instruct-Q8_0.gguf", "size_gib": 0.42},
-      "notes": "The vision pair wired for Hades: runs on CPU at -ngl 0 for zero VRAM, about 15 s per 768 px image.",
-      "measured": [
-        {"hardware": "RX 5700 XT 8GB / Ryzen 5 1600 (CPU only)", "quant": "Q4_K_M", "flags": "-ngl 0 --mmproj", "vram_gib": 0.0, "decode_tps": null, "seconds_per_image": 15.6}
-      ]
-    },
-    {
-      "key": "minicpm-v-4.7-35b-a3b",
-      "name": "MiniCPM-V 4.7 35B A3B (vision)",
-      "repo": "openbmb/MiniCPM-V-4_7-GGUF",
-      "file": "MiniCPM-V-4_7-35B-A3B-Q4_K_M.gguf",
-      "size_gib": 19.71,
-      "params_b": 35,
-      "active_b": 3,
-      "moe": true,
-      "arch": "minicpmv",
-      "context": 32768,
-      "vision": true,
-      "mmproj": {"repo": "openbmb/MiniCPM-V-4_7-GGUF", "file": "mmproj-model-f16.gguf", "size_gib": 1.04},
-      "notes": "A 35B vision MoE. On an 8 GB card it is a batch tool, not an interactive one.",
-      "measured": []
     }
   ]
 }

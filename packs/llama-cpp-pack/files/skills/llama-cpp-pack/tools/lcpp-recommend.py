@@ -242,6 +242,111 @@ def walk_ggufs(root, depth=2):
                 continue
 
 
+CHOICE_ROWS = [
+    {
+        "title": "Autocomplete and instant answers",
+        "why": "the first token lands inside a keystroke budget; depth is wasted here",
+        "rule": "speed unless the completion has to be right about facts, then balanced",
+        "seats": [("speed", "qwen2.5-0.5b-instruct-q4_k_m"),
+                  ("balanced", "minicpm5-2b-q4_k_m"),
+                  ("depth", "qwen3.8-9b-q4_k_m")],
+    },
+    {
+        "title": "General chat",
+        "why": "one conversation at a time, answers read by a human",
+        "rule": "balanced is the default; depth when the question needs planning",
+        "seats": [("speed", "minicpm5-2b-q4_k_m"),
+                  ("balanced", "qwen3.8-9b-q4_k_m"),
+                  ("depth", "qwen3.8-35b-a3b-distill-q4_k_m")],
+    },
+    {
+        "title": "Code edits",
+        "why": "answers copy long spans out of the prompt, so drafting and a bigger model pay more than raw decode",
+        "rule": "balanced for edits inside one file; depth when the change spans files",
+        "seats": [("speed", "qwen3.8-9b-q4_k_m"),
+                  ("balanced", "qwen3.8-35b-a3b-distill-q4_k_m"),
+                  ("depth", "flint-40b-a3b-q4_k_xl")],
+    },
+    {
+        "title": "Long-context reading",
+        "why": "decode falls as the KV cache grows, so the small model takes the least damage",
+        "rule": "speed for search and extract; balanced for summarising a whole file",
+        "seats": [("speed", "minicpm5-2b-q4_k_m"),
+                  ("balanced", "qwen3.8-9b-q4_k_m"),
+                  ("depth", "clover-35b-a3b-q4_0")],
+    },
+    {
+        "title": "Vision",
+        "why": "the projector decides the cost, not the language model behind it",
+        "rule": "speed keeps the projector on CPU and VRAM at zero; depth when the image is the question",
+        "seats": [("speed", "qwen3vl-4b", "-ngl 0 -c 32768 -t 6 -tb 6"),
+                  ("balanced", "local:Qwen3Vl 8b"),
+                  ("depth", "minicpm-v-4.7-35b-a3b")],
+    },
+    {
+        "title": "Hard problems, low volume",
+        "why": "one answer a minute is fine if the answer is right",
+        "rule": "balanced for arithmetic and code reasoning; depth for open-ended design",
+        "seats": [("speed", "qwen3.8-9b-q4_k_m"),
+                  ("balanced", "qwen3.8-27b-iq3_xxs"),
+                  ("depth", "nanbeige4.3-33b-q4_k_m")],
+    },
+]
+
+
+def choice_index(candidates):
+    by_key, by_name = {}, {}
+    for candidate in candidates:
+        key = (candidate["entry"] or {}).get("key")
+        if key:
+            by_key[key] = candidate
+        by_name[candidate["name"].lower()] = candidate
+        by_name[Path((candidate["facts"] or {}).get("path") or candidate["name"]).name.lower()] = candidate
+    return by_key, by_name
+
+
+def seat_candidate(seat, by_key, by_name):
+    if seat.startswith("local:"):
+        wanted = seat.split(":", 1)[1].lower()
+        for name, candidate in by_name.items():
+            if wanted in name:
+                return candidate
+        return None
+    return by_key.get(seat)
+
+
+def print_choice(candidates, hw, args):
+    by_key, by_name = choice_index(candidates)
+    print(f"hardware: {hw['label']}")
+    print("three seats per row: speed buys latency, depth buys the harder answer")
+    print()
+    missing = 0
+    for row in CHOICE_ROWS:
+        print(row["title"])
+        print(f"  why        {row['why']}")
+        for seat_row in row["seats"]:
+            label, seat = seat_row[0], seat_row[1]
+            override = seat_row[2] if len(seat_row) > 2 else None
+            candidate = seat_candidate(seat, by_key, by_name)
+            if candidate is None:
+                missing += 1
+                print(f"  {label:<10} not present on this machine and not in the catalog")
+                continue
+            verdict = candidate["verdict"]
+            entry = candidate["entry"] or {}
+            flags = override or verdict["flags"] or "not fitting"
+            speed = measured_line(candidate, entry) or "unmeasured here"
+            where = "" if candidate["present"] else " [download]"
+            print(f"  {label:<10} {candidate['name'][:34]:<34} {candidate['size_gib'] or 0:6.2f} GiB  "
+                  f"{verdict['fit'].upper():<7} ctx {verdict['ctx']:<6} {speed}{where}")
+            print(f"  {'':<10} {flags[:118]}")
+        print(f"  rule       {row['rule']}")
+        print()
+    if missing:
+        print(f"{missing} seat(s) could not be filled on this machine. The sheet is complete only when its")
+        print("files are present: run with --downloads to see the ones the catalog would fetch.")
+
+
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--scan", action="append", default=[], help="directory of .gguf files")
@@ -253,6 +358,7 @@ def main():
     parser.add_argument("--catalog", default=str(HERE / "catalog.json"))
     parser.add_argument("--downloads", action="store_true", help="also rank catalog models not present locally")
     parser.add_argument("--all", action="store_true", help="include entries that do not fit")
+    parser.add_argument("--choice", action="store_true", help="six rows, three seats each: speed against depth")
     parser.add_argument("--json", action="store_true")
     args = parser.parse_args()
 
@@ -330,6 +436,10 @@ def main():
         params = (candidate["entry"] or {}).get("params_b") or 0
         return (order[verdict["fit"]], -speed, -params)
     candidates.sort(key=sort_key)
+
+    if args.choice:
+        print_choice(candidates, hw, args)
+        return
 
     if args.json:
         print(json.dumps({"hardware": hw, "candidates": [

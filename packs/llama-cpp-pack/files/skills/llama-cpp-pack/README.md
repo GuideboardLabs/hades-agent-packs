@@ -31,6 +31,7 @@ tools/lcpp-adapt.py                     # what this pack assumes, and what is fa
 tools/lcpp-detect.py                    # CPU, GPU, VRAM, backends, disks
 tools/lcpp-build.sh                     # build llama.cpp for the right backend, then verify
 tools/lcpp-recommend.py --scan ~/models # what fits here, with the flags to run it
+tools/lcpp-recommend.py --choice      # six rows, three seats: speed against depth
 tools/lcpp-tune.py ~/models/model.gguf  # measure the plausible configs, pick the winner
 tools/lcpp-smoke.py --url http://127.0.0.1:8115   # pre-test it as an agent model
 tools/lcpp-serve.sh --from-report tune.json --write --start

@@ -1,7 +1,7 @@
 ---
 name: llama-cpp-pack
 description: "Serving a GGUF with llama.cpp: pick, build, tune, serve."
-version: 2.1.0
+version: 2.2.0
 license: MIT
 tags: [llama-cpp, serving, vram, moe, quant, vision, benchmarking, hades]
 ---
@@ -22,6 +22,7 @@ tools/lcpp-install-skills.sh             # make the skills loadable
 tools/lcpp-detect.py                     # what this box actually is
 tools/lcpp-build.sh                      # backend by silicon, then verify the binary
 tools/lcpp-recommend.py --scan ~/models  # what fits, with flags
+tools/lcpp-recommend.py --choice         # six intents, three seats each: speed against depth
 tools/lcpp-tune.py ~/models/model.gguf   # sweep, measure, pick the winner
 tools/lcpp-smoke.py --url http://127.0.0.1:8115   # pre-test: template, thinking, tools, long ctx, speed
 tools/lcpp-serve.sh --from-report tune.json --write --start
