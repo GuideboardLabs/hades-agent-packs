@@ -67,10 +67,40 @@ def check_manifest(pack_dir: Path, manifest: dict) -> list[str]:
     ):
         problems.append("`keywords` must be a list of non-empty strings")
     requires = manifest.get("requires") or {}
-    if set(requires) != {"hades", "roles", "tools"}:
-        problems.append("`requires` must have exactly hades, roles, tools")
+    # `assumptions` is the newest key: the runtime decides each claim against the machine before anything is
+    # installed, so a pack that carries one is publishable only if the claims have the shape it reads.
+    unknown_requires = set(requires) - {"hades", "roles", "tools", "assumptions"}
+    if unknown_requires:
+        problems.append(f"`requires` has unknown keys: {sorted(unknown_requires)}")
+    if not {"hades", "roles", "tools"} <= set(requires):
+        problems.append("`requires` must say hades, roles and tools, even when empty")
     if not isinstance(requires.get("hades"), str) or not requires["hades"].strip():
         problems.append("`requires.hades` must be a range, for example >=0.1.0,<0.2")
+    assumptions = requires.get("assumptions", [])
+    if not isinstance(assumptions, list):
+        problems.append("`requires.assumptions` must be an array")
+        assumptions = []
+    seen_ids = set()
+    for index, item in enumerate(assumptions):
+        where = f"requires.assumptions[{index}]"
+        if not isinstance(item, dict):
+            problems.append(f"{where} must be an object")
+            continue
+        extra = set(item) - {"id", "claim", "check", "arg", "severity", "resolution"}
+        if extra:
+            problems.append(f"{where} has unknown keys: {sorted(extra)}")
+        for field in ("id", "claim", "check"):
+            value = item.get(field)
+            if not isinstance(value, str) or not value.strip():
+                problems.append(f"{where} `{field}` must be a non-empty string")
+        if item.get("severity") not in ("hard", "soft"):
+            problems.append(f"{where} `severity` must be `hard` or `soft`")
+        if not isinstance(item.get("resolution", ""), str):
+            problems.append(f"{where} `resolution` must be a string")
+        if isinstance(item.get("id"), str):
+            if item["id"] in seen_ids:
+                problems.append(f"{where} repeats the id `{item['id']}`")
+            seen_ids.add(item["id"])
     provides = manifest.get("provides") or {}
     unknown = set(provides) - set(KINDS)
     if unknown:

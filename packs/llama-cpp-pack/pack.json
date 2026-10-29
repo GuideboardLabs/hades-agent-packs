@@ -1,0 +1,120 @@
+{
+  "format": 1,
+  "id": "llama-cpp-pack",
+  "version": "2.1.0",
+  "title": "llama.cpp serving",
+  "summary": "Take a GGUF from a file on disk to a tuned, pre-tested, served model on a consumer gaming GPU: probe the box, choose the backend by silicon, do the VRAM maths, tune, smoke-test and write the unit. Every number carries the measurement that produced it, and every tool refuses the action that would produce a lie.",
+  "license": "MIT",
+  "derivatives": "allowed",
+  "keywords": [
+    "llama.cpp",
+    "serving",
+    "gguf",
+    "vram",
+    "quant",
+    "moe",
+    "vulkan",
+    "rocm",
+    "tuning",
+    "systemd",
+    "vision",
+    "benchmark"
+  ],
+  "requires": {
+    "hades": ">=0.2.0,<0.3",
+    "roles": [],
+    "tools": [
+      "read_file",
+      "shell"
+    ],
+    "assumptions": [
+      {
+        "id": "gpu_present",
+        "claim": "there is a discrete GPU to put layers on",
+        "check": "gpu_present",
+        "severity": "hard",
+        "resolution": "no GPU means the CPU build and models under ~4B; the pack still applies, its numbers do not"
+      },
+      {
+        "id": "vendor_amd",
+        "claim": "the GPU is AMD, so the advice is Vulkan-versus-ROCm and -ncmoe",
+        "check": "gpu_vendor",
+        "arg": "AMD",
+        "severity": "soft",
+        "resolution": "on NVIDIA use the CUDA build and --n-cpu-moe for every -ncmoe example; on Intel use Vulkan"
+      },
+      {
+        "id": "vram_needs",
+        "claim": "the tuning needs at most 8 GiB of VRAM",
+        "check": "vram_at_least",
+        "arg": 8,
+        "severity": "soft",
+        "resolution": "a smaller card will not hold the offload numbers either; start from tools/lcpp-recommend.py"
+      },
+      {
+        "id": "vram_tuned_for",
+        "claim": "8 GiB is the card this was tuned on, so -ncmoe 26 is the wrong number anywhere else",
+        "check": "vram_at_most",
+        "arg": 8,
+        "severity": "soft",
+        "resolution": "recompute the offload with tools/lcpp-recommend.py: with more VRAM fewer experts leave the card, and the model may fit whole"
+      },
+      {
+        "id": "card_idle",
+        "claim": "the card is idle before a measurement",
+        "check": "vram_idle",
+        "arg": 0.9,
+        "severity": "hard",
+        "resolution": "wait for whatever is loaded to unload; a measurement on a busy card is not a measurement"
+      },
+      {
+        "id": "threads_physical",
+        "claim": "the thread count is the physical core count, six on the machine this was written on",
+        "check": "physical_cores",
+        "severity": "soft",
+        "resolution": "use the count this machine reports, not 6: hyperthreads cost throughput in llama.cpp"
+      },
+      {
+        "id": "port_8115",
+        "claim": "port 8115 is free for a bench server",
+        "check": "port_free",
+        "arg": 8115,
+        "severity": "soft",
+        "resolution": "pick a free port and pass it to tools/lcpp-serve.sh; the unit it writes must name the same one"
+      },
+      {
+        "id": "ram_for_offload",
+        "claim": "system RAM can hold the offloaded experts, about 20 GiB for a 35B Q4",
+        "check": "ram_at_least",
+        "arg": 24,
+        "severity": "soft",
+        "resolution": "with less RAM drop to a smaller quant or a model whose experts fit; -ncmoe assumes the overflow lands somewhere"
+      },
+      {
+        "id": "weights_local_disk",
+        "claim": "the weights being served live on an internal disk, not a USB drive",
+        "check": "disk_local",
+        "arg": "~/models",
+        "severity": "soft",
+        "resolution": "move the file being served to the internal disk first; loading a weight over USB costs more than the quant saves"
+      }
+    ]
+  },
+  "provides": {
+    "skills": [
+      {
+        "name": "llama-cpp-pack",
+        "path": "files/skills/llama-cpp-pack"
+      }
+    ],
+    "harnesses": [],
+    "cases": []
+  },
+  "capabilities": {
+    "network": false,
+    "writes": [
+      "state"
+    ],
+    "code": false
+  }
+}

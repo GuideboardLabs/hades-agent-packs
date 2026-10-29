@@ -1,0 +1,138 @@
+{
+  "name": "llama-cpp-pack",
+  "version": "2.1.0",
+  "description": "Serving GGUF models on consumer gaming GPUs: build, fit, tune, pre-test, serve.",
+  "written_on": {
+    "gpu": "AMD RX 5700 XT 8 GiB RDNA1 (gfx1010)",
+    "cpu": "Ryzen 5 1600, 6 physical cores",
+    "ram_gib": 31,
+    "backend": "vulkan",
+    "os": "Linux 7.0, systemd user units",
+    "detector": "tools/lcpp-detect.py"
+  },
+  "checker": "tools/lcpp-checks.py",
+  "settings": {
+    "threads": "${physical_cores}",
+    "port": "${free_port}",
+    "vram_gib": "${vram_gib}",
+    "vendor": "${vendor}",
+    "ram_gib": "${ram_gib}",
+    "home": "${home}"
+  },
+  "assumptions": [
+    {
+      "id": "gpu_present",
+      "claim": "there is a discrete GPU to put layers on",
+      "check": "gpu_present",
+      "severity": "hard",
+      "resolution": "no GPU means the CPU build and models under ~4B; the pack still applies, its numbers do not"
+    },
+    {
+      "id": "vendor_amd",
+      "claim": "the GPU is AMD, so the advice is Vulkan-versus-ROCm and -ncmoe",
+      "check": "gpu_vendor",
+      "arg": "AMD",
+      "severity": "soft",
+      "resolution": "on NVIDIA use the CUDA build and --n-cpu-moe for every -ncmoe example; on Intel use Vulkan"
+    },
+    {
+      "id": "vram_needs",
+      "claim": "the tuning needs at most 8 GiB of VRAM",
+      "check": "vram_at_least",
+      "arg": 8,
+      "severity": "soft",
+      "resolution": "a smaller card than this will not hold the offload numbers either; start from lcpp-recommend.py"
+    },
+    {
+      "id": "vram_tuned_for",
+      "claim": "8 GiB is the card this was tuned on, so -ncmoe 26 is the wrong number anywhere else",
+      "check": "vram_at_most",
+      "arg": 8,
+      "severity": "soft",
+      "resolution": "recompute the offload with lcpp-recommend.py: with more VRAM fewer experts leave the card, and the model may fit whole"
+    },
+    {
+      "id": "rocm_choice",
+      "claim": "ROCm does not support this silicon, so Vulkan is correct",
+      "check": "rocm_unsupported_ok",
+      "severity": "soft",
+      "resolution": "if ROCm does support this card, build it and compare: field reports show it beating Vulkan by 30 to 50 percent on RDNA3 and CDNA"
+    },
+    {
+      "id": "threads_physical",
+      "claim": "threads equal physical cores, 6 on the machine this was written on",
+      "check": "physical_cores",
+      "severity": "soft",
+      "resolution": "use this machine's physical count, never its logical count"
+    },
+    {
+      "id": "port_8115",
+      "claim": "port 8115 is free for a bench server",
+      "check": "port_free",
+      "arg": 8115,
+      "severity": "soft",
+      "resolution": "pick the free port the profile names; the port map is a convention, not a requirement"
+    },
+    {
+      "id": "card_idle",
+      "claim": "the card is idle before a measurement",
+      "check": "vram_idle",
+      "arg": 0.9,
+      "severity": "hard",
+      "resolution": "stop whatever holds the card; a measurement taken now describes contention, not the model"
+    },
+    {
+      "id": "binary_features",
+      "claim": "the llama.cpp build has --mmproj and n-cpu-moe",
+      "check": "binary_features",
+      "severity": "hard",
+      "resolution": "build from current master; without n-cpu-moe a 35B MoE cannot fit a small card"
+    },
+    {
+      "id": "ram_for_offload",
+      "claim": "system RAM can hold the offloaded experts, about 20 GiB for a 35B Q4",
+      "check": "ram_at_least",
+      "arg": 24,
+      "severity": "soft",
+      "resolution": "below 24 GiB prefer a smaller quant or model; offload that spills to swap runs at single-digit t/s"
+    },
+    {
+      "id": "weights_local_disk",
+      "claim": "weights being served live on an internal disk, not a USB drive",
+      "check": "disk_local",
+      "arg": ["~/models"],
+      "severity": "soft",
+      "resolution": "move the GGUF to an internal disk before tuning; a USB drive can cost an order of magnitude on prefill"
+    },
+    {
+      "id": "hades_endpoint",
+      "claim": "the agent's own config points at a live endpoint",
+      "check": "hades_endpoint",
+      "severity": "soft",
+      "resolution": "point the Hades endpoint at the tuned server and match context_tokens to the served n_ctx"
+    },
+    {
+      "id": "agent_vision",
+      "claim": "vision is wired, since the pack documents it",
+      "check": "agent_vision",
+      "severity": "soft",
+      "resolution": "start hades-vision.service and export HADES_VISION_BIN/_MODEL/_PROJECTOR/_PORT, or add a vision block"
+    }
+  ],
+  "claims_to_remeasure": [
+    {"metric": "decode t/s", "value": "10.29", "hardware": "RX 5700 XT 8 GiB, 35B-A3B Q4_0, -ncmoe 26, 8k ctx"},
+    {"metric": "decode t/s", "value": "22.2", "hardware": "RX 5700 XT 8 GiB, 19B-A3B hybrid Q4_K_M, -ncmoe 20, 32k ctx q8_0 KV"},
+    {"metric": "prefill t/s", "value": "281", "hardware": "RX 5700 XT 8 GiB, 35B-A3B Q4_0, --load-mode none"},
+    {"metric": "vision latency s", "value": "15.6", "hardware": "Qwen3-VL 4B Q4_K_M on CPU, -ngl 0, 900x300 image"}
+  ],
+  "entry_points": {
+    "adapt": "tools/lcpp-adapt.py",
+    "detect": "tools/lcpp-detect.py",
+    "recommend": "tools/lcpp-recommend.py",
+    "build": "tools/lcpp-build.sh",
+    "tune": "tools/lcpp-tune.py",
+    "smoke": "tools/lcpp-smoke.py",
+    "serve": "tools/lcpp-serve.sh",
+    "install_skills": "tools/lcpp-install-skills.sh"
+  }
+}
