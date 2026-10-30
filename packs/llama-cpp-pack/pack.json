@@ -1,7 +1,7 @@
 {
   "format": 1,
   "id": "llama-cpp-pack",
-  "version": "2.2.0",
+  "version": "2.2.1",
   "title": "llama.cpp serving",
   "summary": "Take a GGUF from a file on disk to a tuned, pre-tested, served model on a consumer gaming GPU: probe the box, choose the backend by silicon, do the VRAM maths, tune, smoke-test and write the unit. `--choice` answers the other question, six intents with three seats each so speed and depth can be traded deliberately. Every number carries the measurement that produced it, and every tool refuses the action that would produce a lie.",
   "license": "MIT",

@@ -102,6 +102,36 @@ A model with a reasoning section spends tokens before it answers. At a 900-token
 returned 3,731 characters of reasoning, zero characters of content, and `finish_reason: length`. At
 3,000 tokens it answered correctly in 936 characters. Treat anything under ~1,500 as a trap.
 
+**Measuring the thinking flags, and not guessing at them.** Clover-35B-A3B Q4_0 on a 5700 XT,
+eight hidden-test code tasks, answer cap 4,096 tokens, one process at a time:
+
+| flags | easy task | hard task |
+|---|---|---|
+| nothing, so thinking runs unbounded | 0/5 in 447 s | 0/4, timed out at 600 s |
+| `--reasoning-budget 1500` | 5/5 in 188 s | 0/4 in 350 s |
+| `--reasoning off` | 5/5 in 19 s | 1/4 in 159 s |
+| `--reasoning-effort low` | 0/5 in 447 s | 0/4 in 448 s |
+| `--reasoning-budget 0` | 4/5 in 19 s | 2/4 in 172 s |
+
+Three rules come out of that table.
+
+`--reasoning-effort` is not a universal lever. It only works if the model's chat template reads an
+effort variable. Clover's template is Qwen derived and has `enable_thinking` but no effort variable,
+so the level is dropped, the model thinks without limit, and the request looks identical to no flag
+at all. Check the template before trusting the flag.
+
+`--reasoning-budget 0` is not the same as `--reasoning off`. Budget zero keeps the thinking
+scaffolding and closes it at once, so the model still plans in its head; `--reasoning off` maps to
+`enable_thinking=false` and the template appends an empty block. On Clover the first scored better
+on the hard task and the second better on the easy one, both at 19 s where unbounded took 447 s.
+
+`--chat-template-kwargs '{"preserve_thinking": false}'` matters for multi-turn use. `preserve_thinking`
+defaults to true in this family, which replays earlier reasoning inside every assistant turn, so an
+agent loop pays for the same thinking on every request instead of once.
+
+An answer that stops mid line means the cap, not the model. A 0/4 with a response ending inside a
+function body is a budget measurement, so raise the cap and re-run before recording a score.
+
 ## Speculative decoding
 
 **`--spec-type draft-self`** (block-diffusion / draft-self builds, e.g. PR 31306)
