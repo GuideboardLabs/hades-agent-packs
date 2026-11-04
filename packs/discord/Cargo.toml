@@ -1,6 +1,6 @@
 [package]
 name = "hades-connector-discord"
-version = "0.4.2"
+version = "0.4.3"
 edition = "2024"
 description = "Discord, as a surface Hades can be installed on."
 license = "MIT"
@@ -17,7 +17,7 @@ path = "src/main.rs"
 # When base ships a change this pack needs, bump the tag here and `requires.hades` in pack.json in
 # the same commit. The base repository runs a contract job that builds this crate against its own
 # HEAD, so a seam that breaks shows up in base before it is released.
-harness = { git = "https://github.com/GuideboardLabs/hades-agent", tag = "v0.4.6" }
+harness = { git = "https://github.com/GuideboardLabs/hades-agent", tag = "v0.4.7" }
 serde_json = "1"
 ureq = { version = "2", features = ["json"] }
 tungstenite = { version = "0.24", default-features = false, features = ["handshake", "rustls-tls-webpki-roots"] }
