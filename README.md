@@ -18,6 +18,38 @@ sets `derivatives: forbidden`, and publishes its archive somewhere that is not t
 menu row may name an absolute `https://` archive URL, and `hades pack add` checks the same digest either
 way.
 
+## Source lives here, and the runtime only carries the contract
+
+A feature that is not system-level is a pack, and this repository is where its source lives. The boundary in
+practice:
+
+| in the base repository | in this one |
+|---|---|
+| the agent loop, the journal and rewind, the gateway and its policy | every surface that talks to another service |
+| the pack manifest schema, the installer, the shelf it reads | a bundle of skills and tools |
+| a field a surface needs, a config key a pack must set | a serving recipe, a prompt, a pinned case |
+
+Base changes to accommodate a pack are fine and should be small. If a pack needs more than that, the thing
+being built is probably system-level.
+
+A pack with a compiled binary is a crate in `packs/<id>/` that depends on the runtime **by release tag**,
+never by path:
+
+```toml
+harness = { git = "https://github.com/GuideboardLabs/hades-agent", tag = "v0.4.3" }
+```
+
+The order is fixed by that line. Base ships the seam in a release; this repository bumps the tag and the
+pack's `requires.hades` in the same commit. The base repository runs `rust/scripts/pack-contract.sh`, which
+builds the crates here against its own checkout with only that dependency rewritten, so a seam that breaks
+fails there instead of after a tag.
+
+```bash
+cargo test -p hades-connector-discord        # the pack's own tests
+python3 tools/connector-pack.py              # build, stage and archive into files/connectors/<id>/
+python3 tools/build.py                       # write dist/, INDEX.json and MENU.md
+```
+
 ## The two rules
 
 1. **The menu is checked before a new skill is written.** A skill that already exists here is installed, not

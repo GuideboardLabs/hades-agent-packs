@@ -1,0 +1,23 @@
+[package]
+name = "hades-connector-discord"
+version = "0.4.0"
+edition = "2024"
+description = "Discord, as a surface Hades can be installed on."
+license = "MIT"
+
+[[bin]]
+name = "hades-connector-discord"
+path = "src/main.rs"
+
+[dependencies]
+# The base runtime, pinned by release tag. A pack builds against a published Hades, never against
+# whatever happens to be checked out beside it: that is what keeps the connector out of the base
+# repository and makes "which base does this pack need" a fact in the manifest instead of a guess.
+#
+# When base ships a change this pack needs, bump the tag here and `requires.hades` in pack.json in
+# the same commit. The base repository runs a contract job that builds this crate against its own
+# HEAD, so a seam that breaks shows up in base before it is released.
+harness = { git = "https://github.com/GuideboardLabs/hades-agent", tag = "v0.4.3" }
+serde_json = "1"
+ureq = { version = "2", features = ["json"] }
+tungstenite = { version = "0.24", default-features = false, features = ["handshake", "rustls-tls-webpki-roots"] }

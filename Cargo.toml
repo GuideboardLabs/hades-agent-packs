@@ -1,0 +1,6 @@
+[workspace]
+resolver = "3"
+members = ["packs/discord"]
+
+# Packs that ship a compiled binary live here as crates. The base runtime is a dependency pinned by
+# tag, never a path: see packs/discord/Cargo.toml for why.
