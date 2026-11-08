@@ -302,14 +302,14 @@ dependencies = [
 [[package]]
 name = "governance"
 version = "0.0.6"
-source = "git+https://github.com/GuideboardLabs/hades-agent?tag=v0.5.0#e9775c6c37511b5b9fe86676288e4e2efe993690"
+source = "git+https://github.com/GuideboardLabs/hades-agent?tag=v0.5.1#ce24fa3a05e2f242029681118400997307d3f5f6"
 dependencies = [
  "mneme",
 ]
 
 [[package]]
 name = "hades-connector-discord"
-version = "0.4.4"
+version = "0.4.5"
 dependencies = [
  "harness",
  "serde_json",
@@ -319,8 +319,8 @@ dependencies = [
 
 [[package]]
 name = "harness"
-version = "0.5.0"
-source = "git+https://github.com/GuideboardLabs/hades-agent?tag=v0.5.0#e9775c6c37511b5b9fe86676288e4e2efe993690"
+version = "0.5.1"
+source = "git+https://github.com/GuideboardLabs/hades-agent?tag=v0.5.1#ce24fa3a05e2f242029681118400997307d3f5f6"
 dependencies = [
  "crossterm",
  "governance",
@@ -616,7 +616,7 @@ dependencies = [
 [[package]]
 name = "mneme"
 version = "0.1.0"
-source = "git+https://github.com/GuideboardLabs/hades-agent?tag=v0.5.0#e9775c6c37511b5b9fe86676288e4e2efe993690"
+source = "git+https://github.com/GuideboardLabs/hades-agent?tag=v0.5.1#ce24fa3a05e2f242029681118400997307d3f5f6"
 dependencies = [
  "rusqlite",
  "serde_json",
@@ -905,7 +905,7 @@ dependencies = [
 [[package]]
 name = "session-tree"
 version = "0.1.0"
-source = "git+https://github.com/GuideboardLabs/hades-agent?tag=v0.5.0#e9775c6c37511b5b9fe86676288e4e2efe993690"
+source = "git+https://github.com/GuideboardLabs/hades-agent?tag=v0.5.1#ce24fa3a05e2f242029681118400997307d3f5f6"
 dependencies = [
  "serde_json",
 ]
